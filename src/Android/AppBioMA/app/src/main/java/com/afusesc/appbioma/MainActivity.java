@@ -1,5 +1,7 @@
 package com.afusesc.appbioma;
 
+import static android.provider.ContactsContract.CommonDataKinds.Website.URL;
+
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -12,11 +14,23 @@ import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,27 +90,19 @@ public class MainActivity extends AppCompatActivity {
 
     // --------------------------------------------------------------
     // --------------------------------------------------------------
-    private void mostrarInformacionDispositivoBTLE( ScanResult resultado ) {
-
+    private void mostrarInformacionDispositivoBTLE(ScanResult resultado) {
         BluetoothDevice bluetoothDevice = resultado.getDevice();
         byte[] bytes = resultado.getScanRecord().getBytes();
         int rssi = resultado.getRssi();
 
-        Log.d(ETIQUETA_LOG, " ****************************************************");
-        Log.d(ETIQUETA_LOG, " ****** DISPOSITIVO DETECTADO BTLE ****************** ");
-        Log.d(ETIQUETA_LOG, " ****************************************************");
+        Log.d(ETIQUETA_LOG, " ******************");
+        Log.d(ETIQUETA_LOG, " ** DISPOSITIVO DETECTADO BTLE ****** ");
+        Log.d(ETIQUETA_LOG, " ******************");
         Log.d(ETIQUETA_LOG, " nombre = " + bluetoothDevice.getName());
         Log.d(ETIQUETA_LOG, " toString = " + bluetoothDevice.toString());
 
-        /*
-        ParcelUuid[] puuids = bluetoothDevice.getUuids();
-        if ( puuids.length >= 1 ) {
-            //Log.d(ETIQUETA_LOG, " uuid = " + puuids[0].getUuid());
-           // Log.d(ETIQUETA_LOG, " uuid = " + puuids[0].toString());
-        }*/
-
         Log.d(ETIQUETA_LOG, " dirección = " + bluetoothDevice.getAddress());
-        Log.d(ETIQUETA_LOG, " rssi = " + rssi );
+        Log.d(ETIQUETA_LOG, " rssi = " + rssi);
 
         Log.d(ETIQUETA_LOG, " bytes = " + new String(bytes));
         Log.d(ETIQUETA_LOG, " bytes (" + bytes.length + ") = " + Utilidades.bytesToHexString(bytes));
@@ -118,9 +124,47 @@ public class MainActivity extends AppCompatActivity {
         Log.d(ETIQUETA_LOG, " minor  = " + Utilidades.bytesToHexString(tib.getMinor()) + "( "
                 + Utilidades.bytesToInt(tib.getMinor()) + " ) ");
         Log.d(ETIQUETA_LOG, " txPower  = " + Integer.toHexString(tib.getTxPower()) + " ( " + tib.getTxPower() + " )");
-        Log.d(ETIQUETA_LOG, " ****************************************************");
+        Log.d(ETIQUETA_LOG, " ******************");
 
-    } // ()
+        // Enviar el valor del minor al backend
+        if(Utilidades.bytesToInt(tib.getMajor()) == 1){
+            enviarNumeroAlBackend(Utilidades.bytesToInt(tib.getMinor()));
+        }
+
+    }
+
+    // Función para enviar el número (minor) al backend usando OkHttp
+    private void enviarNumeroAlBackend(int numeroMinor) {
+        OkHttpClient client = new OkHttpClient();
+
+        // Crear el cuerpo de la solicitud con el número en formato POST
+        RequestBody formBody = new FormBody.Builder()
+                .add("numero", String.valueOf(numeroMinor))
+                .build();
+
+        // Configurar la solicitud con la URL de tu backend PHP
+        Request request = new Request.Builder()
+                .url("http://192.168.1.59:8080") // Cambia esta URL según tu servidor
+                .post(formBody)
+                .build();
+
+        // Ejecutar la solicitud en un hilo separado
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(ETIQUETA_LOG, "Error al enviar el número al backend", e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    Log.e(ETIQUETA_LOG, "Error en la respuesta del servidor: " + response);
+                } else {
+                    Log.d(ETIQUETA_LOG, "Número enviado con éxito al backend");
+                }
+            }
+        });
+    }
 
     // --------------------------------------------------------------
     // --------------------------------------------------------------
@@ -251,9 +295,45 @@ public class MainActivity extends AppCompatActivity {
 
         inicializarBlueTooth();
 
-        Log.d(ETIQUETA_LOG, " onCreate(): termina ");
+        Button btnEnviar = findViewById(R.id.btnEnviar);
 
-    } // onCreate()
+        btnEnviar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                enviarNumero(42); // Enviar el valor de minor
+            }
+        });
+
+        Log.d(ETIQUETA_LOG, " onCreate(): termina ");
+    }
+    private static final String url = "http://192.168.1.59:8080/guardar_numero.php";
+    private void enviarNumero(int numero) {
+        OkHttpClient client = new OkHttpClient();
+
+        String json = "numero=" + numero; // Crear el cuerpo de la solicitud
+        RequestBody body = RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), json);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace(); // Manejo de error
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseData = response.body().string();
+                    System.out.println(responseData); // Imprimir la respuesta del servidor
+                } else {
+                    System.err.println("Error: " + response.message()); // Imprimir el error
+                }
+            }
+        });
+    }
 
     // --------------------------------------------------------------
     // --------------------------------------------------------------

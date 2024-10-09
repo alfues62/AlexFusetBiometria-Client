@@ -30,5 +30,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         />
+    <Button
+        android:id="@+id/btnEnviar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enviar número fijo" />
 
 </android.widget.LinearLayout>
