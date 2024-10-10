@@ -14,11 +14,11 @@ import java.io.IOException;
 
 public class BackendManager {
 
-    private static final String ETIQUETA_LOG = ">>>>";
-    private static final String URL_BASE = "http://192.168.1.59:8080"; // Cambia esta URL según tu servidor
+    private static final String ETIQUETA_LOG = ">>>>"; // Etiqueta para los logs
+    private static final String URL_BASE = "http://192.168.1.59:8080"; // URL del servidor, ajustar según sea necesario
     private OkHttpClient client;
 
-    // Constructor
+    // Constructor inicializa el cliente OkHttp
     public BackendManager() {
         this.client = new OkHttpClient();
     }
@@ -29,33 +29,33 @@ public class BackendManager {
      * @param numero El número (minor) a enviar.
      */
     public void enviarNumeroAlBackend(int numero) {
-        // Crear el cuerpo de la solicitud con el número en formato POST
+        // Construye la solicitud POST con el número como parámetro
         RequestBody formBody = new FormBody.Builder()
                 .add("numero", String.valueOf(numero))
                 .build();
 
-        // Crear la solicitud POST
+        // Configura la solicitud con la URL base y el cuerpo de la petición
         Request request = new Request.Builder()
                 .url(URL_BASE)
                 .post(formBody)
                 .build();
 
-        // Ejecutar la solicitud en un hilo separado
+        // Ejecuta la solicitud de forma asíncrona
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                // Manejo de error al enviar la solicitud
+                // Log de error si la solicitud falla
                 Log.e(ETIQUETA_LOG, "Error al enviar el número al backend", e);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                // Manejo de la respuesta del servidor
+                // Verifica si la respuesta es satisfactoria
                 if (!response.isSuccessful()) {
                     Log.e(ETIQUETA_LOG, "Error en la respuesta del servidor: " + response);
                 } else {
+                    // Log de éxito y respuesta del servidor
                     Log.d(ETIQUETA_LOG, "Número enviado con éxito al backend");
-                    // Aquí podrías procesar la respuesta si es necesario
                     String responseData = response.body().string();
                     Log.d(ETIQUETA_LOG, "Respuesta del servidor: " + responseData);
                 }

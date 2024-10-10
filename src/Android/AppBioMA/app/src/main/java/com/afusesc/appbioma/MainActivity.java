@@ -38,25 +38,25 @@ import java.util.List;
 import java.util.UUID;
 
 // ------------------------------------------------------------------
+/**
+ * Actividad principal que maneja la interacción con dispositivos Bluetooth LE (BTLE)
+ * y se comunica con el backend para enviar información.
+ */
 // ------------------------------------------------------------------
-
 public class MainActivity extends AppCompatActivity {
-
-    // --------------------------------------------------------------
-    // --------------------------------------------------------------
     private static final String ETIQUETA_LOG = ">>>>";
-
     private static final int CODIGO_PETICION_PERMISOS = 11223344;
-
-    // --------------------------------------------------------------
-    // --------------------------------------------------------------
     private BluetoothLeScanner elEscanner;
-
     private ScanCallback callbackDelEscaneo = null;
     private static final String MAC_OBJETIVO = "D1:04:CF:20:79:85"; // Dirección MAC del dispositivo objetivo
     private BackendManager backendManager;
     TextView tv;
     // --------------------------------------------------------------
+    /**
+     * Método que se ejecuta al crear la actividad.
+     *
+     * @param savedInstanceState Estado guardado de la instancia.
+     */
     // --------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +73,12 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(ETIQUETA_LOG, " onCreate(): termina ");
     }
+
+    // --------------------------------------------------------------
+    /**
+     * Método para buscar y escanear todos los dispositivos BTLE.
+     */
+    // --------------------------------------------------------------
     private void buscarTodosLosDispositivosBTLE() {
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empieza ");
 
@@ -108,8 +114,11 @@ public class MainActivity extends AppCompatActivity {
 
     } // ()
 
-    // --------------------------------------------------------------
-    // --------------------------------------------------------------
+    /**
+     * Muestra la información de un dispositivo BTLE específico.
+     *
+     * @param resultado El resultado del escaneo que contiene el dispositivo BTLE.
+     */
     private void mostrarInformacionDispositivoBTLE(ScanResult resultado) {
         BluetoothDevice bluetoothDevice = resultado.getDevice();
         String direccionMAC = bluetoothDevice.getAddress(); // Obtener la dirección MAC del dispositivo
@@ -166,6 +175,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --------------------------------------------------------------
+    /**
+     * Método para buscar un dispositivo BTLE específico por su dirección MAC.
+     *
+     * @param direccionMac La dirección MAC del dispositivo a buscar.
+     */
     // --------------------------------------------------------------
     private void buscarEsteDispositivoBTLE(final String direccionMac) {
         Log.d(ETIQUETA_LOG, " buscarEsteDispositivoBTLE(): empieza ");
@@ -202,6 +216,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --------------------------------------------------------------
+    /**
+     * Método detener la busqueda de dispositivos BTLE
+     */
     // --------------------------------------------------------------
     private void detenerBusquedaDispositivosBTLE() {
 
@@ -215,14 +232,14 @@ public class MainActivity extends AppCompatActivity {
     } // ()
 
     // --------------------------------------------------------------
+    /**
+     * Botones que llaman a los métodos anteriores
+     */
     // --------------------------------------------------------------
     public void botonBuscarDispositivosBTLEPulsado( View v ) {
         Log.d(ETIQUETA_LOG, " boton buscar dispositivos BTLE Pulsado" );
         this.buscarTodosLosDispositivosBTLE();
     } // ()
-
-    // --------------------------------------------------------------
-    // --------------------------------------------------------------
     public void botonBuscarNuestroDispositivoBTLEPulsado( View v ) {
         Log.d(ETIQUETA_LOG, " boton nuestro dispositivo BTLE Pulsado" );
         //this.buscarEsteDispositivoBTLE( Utilidades.stringToUUID( "EPSG-GTI-PROY-3A" ) );
@@ -231,15 +248,15 @@ public class MainActivity extends AppCompatActivity {
         this.buscarEsteDispositivoBTLE( "D1:04:CF:20:79:85" );
 
     } // ()
-
-    // --------------------------------------------------------------
-    // --------------------------------------------------------------
     public void botonDetenerBusquedaDispositivosBTLEPulsado( View v ) {
         Log.d(ETIQUETA_LOG, " boton detener busqueda dispositivos BTLE Pulsado" );
         this.detenerBusquedaDispositivosBTLE();
     } // ()
 
     // --------------------------------------------------------------
+    /**
+     * Inicializa el adaptador Bluetooth y verifica los permisos necesarios.
+     */
     // --------------------------------------------------------------
     private void inicializarBlueTooth() {
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): obtenemos adaptador BT ");

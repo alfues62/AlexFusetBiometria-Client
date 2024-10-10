@@ -2,9 +2,17 @@ package com.afusesc.appbioma;
 
 import java.util.Arrays;
 
-// -----------------------------------------------------------------------------------
-// @author: Jordi Bataller i Mascarell
-// -----------------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------------
+ * Clase TramaIBeacon
+ *
+ * Esta clase se encarga de manejar y procesar la información contenida en una trama
+ * iBeacon. El objetivo de esta clase es extraer estos campos a partir de un array de bytes
+ * que representa la trama iBeacon completa.
+ * -----------------------------------------------------------------------------------
+ * @author: Jordi Bataller i Mascarell
+ * -----------------------------------------------------------------------------------
+ */
 public class TramaIBeacon {
     private byte[] prefijo = null; // 9 bytes
     private byte[] uuid = null; // 16 bytes
