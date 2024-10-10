@@ -15,6 +15,7 @@ import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -29,6 +30,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.List;
@@ -50,9 +53,26 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothLeScanner elEscanner;
 
     private ScanCallback callbackDelEscaneo = null;
+    private static final String MAC_OBJETIVO = "D1:04:CF:20:79:85"; // Dirección MAC del dispositivo objetivo
+    private BackendManager backendManager;
+    TextView tv;
+    // --------------------------------------------------------------
+    // --------------------------------------------------------------
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-    // --------------------------------------------------------------
-    // --------------------------------------------------------------
+        Log.d(ETIQUETA_LOG, " onCreate(): empieza ");
+
+        tv = findViewById(R.id.minor);
+
+        inicializarBlueTooth();
+
+        backendManager = new BackendManager();
+
+        Log.d(ETIQUETA_LOG, " onCreate(): termina ");
+    }
     private void buscarTodosLosDispositivosBTLE() {
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empieza ");
 
@@ -92,11 +112,19 @@ public class MainActivity extends AppCompatActivity {
     // --------------------------------------------------------------
     private void mostrarInformacionDispositivoBTLE(ScanResult resultado) {
         BluetoothDevice bluetoothDevice = resultado.getDevice();
+        String direccionMAC = bluetoothDevice.getAddress(); // Obtener la dirección MAC del dispositivo
+
+        // Filtrar el dispositivo por la dirección MAC
+        if (!direccionMAC.equals(MAC_OBJETIVO)) {
+            // Si no coincide la dirección MAC, no hacemos nada
+            return;
+        }
+
         byte[] bytes = resultado.getScanRecord().getBytes();
         int rssi = resultado.getRssi();
 
         Log.d(ETIQUETA_LOG, " ******************");
-        Log.d(ETIQUETA_LOG, " ** DISPOSITIVO DETECTADO BTLE ****** ");
+        Log.d(ETIQUETA_LOG, " ** DISPOSITIVO OBJETIVO DETECTADO BTLE ****** ");
         Log.d(ETIQUETA_LOG, " ******************");
         Log.d(ETIQUETA_LOG, " nombre = " + bluetoothDevice.getName());
         Log.d(ETIQUETA_LOG, " toString = " + bluetoothDevice.toString());
@@ -126,44 +154,15 @@ public class MainActivity extends AppCompatActivity {
         Log.d(ETIQUETA_LOG, " txPower  = " + Integer.toHexString(tib.getTxPower()) + " ( " + tib.getTxPower() + " )");
         Log.d(ETIQUETA_LOG, " ******************");
 
-        // Enviar el valor del minor al backend
+        // Enviar el valor del minor al backend solo si el major es igual a 1
         if(Utilidades.bytesToInt(tib.getMajor()) == 1){
-            enviarNumeroAlBackend(Utilidades.bytesToInt(tib.getMinor()));
+            // Aquí es donde llamas al BackendManager o la lógica fake para enviar el minor al servidor
+            backendManager.enviarNumeroAlBackend(Utilidades.bytesToInt(tib.getMinor()));
+
         }
-
-    }
-
-    // Función para enviar el número (minor) al backend usando OkHttp
-    private void enviarNumeroAlBackend(int numeroMinor) {
-        OkHttpClient client = new OkHttpClient();
-
-        // Crear el cuerpo de la solicitud con el número en formato POST
-        RequestBody formBody = new FormBody.Builder()
-                .add("numero", String.valueOf(numeroMinor))
-                .build();
-
-        // Configurar la solicitud con la URL de tu backend PHP
-        Request request = new Request.Builder()
-                .url("ponerip") // Cambia esta URL según tu servidor
-                .post(formBody)
-                .build();
-
-        // Ejecutar la solicitud en un hilo separado
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e(ETIQUETA_LOG, "Error al enviar el número al backend", e);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    Log.e(ETIQUETA_LOG, "Error en la respuesta del servidor: " + response);
-                } else {
-                    Log.d(ETIQUETA_LOG, "Número enviado con éxito al backend");
-                }
-            }
-        });
+        // Convertir el valor minor a String y actualizar el TextView
+        String minorValue = String.valueOf(Utilidades.bytesToInt(tib.getMinor()));
+        tv.setText(minorValue);  // Asegúrate de que tv no sea null
     }
 
     // --------------------------------------------------------------
@@ -282,58 +281,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     } // ()
-
-
-    // --------------------------------------------------------------
-    // --------------------------------------------------------------
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Log.d(ETIQUETA_LOG, " onCreate(): empieza ");
-
-        inicializarBlueTooth();
-
-        Button btnEnviar = findViewById(R.id.btnEnviar);
-
-        btnEnviar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                enviarNumero(42); // Enviar el valor de minor
-            }
-        });
-
-        Log.d(ETIQUETA_LOG, " onCreate(): termina ");
-    }
-    private static final String url = "http://192.168.1.59:8080/guardar_numero.php";
-    private void enviarNumero(int numero) {
-        OkHttpClient client = new OkHttpClient();
-
-        String json = "numero=" + numero; // Crear el cuerpo de la solicitud
-        RequestBody body = RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), json);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace(); // Manejo de error
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String responseData = response.body().string();
-                    System.out.println(responseData); // Imprimir la respuesta del servidor
-                } else {
-                    System.err.println("Error: " + response.message()); // Imprimir el error
-                }
-            }
-        });
-    }
 
     // --------------------------------------------------------------
     // --------------------------------------------------------------

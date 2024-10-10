@@ -30,10 +30,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         />
-    <Button
-        android:id="@+id/btnEnviar"
+    <TextView
+        android:id="@+id/minor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enviar número fijo" />
+        android:text="minor" />
 
 </android.widget.LinearLayout>
