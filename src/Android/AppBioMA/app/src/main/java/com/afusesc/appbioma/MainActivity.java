@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Configurar la solicitud con la URL de tu backend PHP
         Request request = new Request.Builder()
-                .url("http://192.168.1.59:8080") // Cambia esta URL según tu servidor
+                .url("ponerip") // Cambia esta URL según tu servidor
                 .post(formBody)
                 .build();
 
