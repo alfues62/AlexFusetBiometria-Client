@@ -15,7 +15,7 @@ import java.io.IOException;
 public class BackendManager {
 
     private static final String ETIQUETA_LOG = ">>>>"; // Etiqueta para los logs
-    private static final String URL_BASE = "http://192.168.1.77:8080"; // URL del servidor, ajustar según sea necesario
+    private static final String URL_BASE = "http://192.168.151.180:8080"; // URL del servidor, ajustar según sea necesario
     private OkHttpClient client;
 
     // Constructor inicializa el cliente OkHttp
