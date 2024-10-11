@@ -1,4 +1,4 @@
-package com.afusesc.appbioma;
+package com.hxu2.appbioma;
 
 import org.junit.Test;
 

@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.afusesc.appbioma"
+    namespace = "com.hxu2.appbioma"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.afusesc.appbioma"
+        applicationId = "com.hxu2.appbioma"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -26,6 +26,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    buildToolsVersion = "35.0.0"
 }
 
 dependencies {

@@ -1,4 +1,4 @@
-package com.afusesc.appbioma;
+package com.hxu2.appbioma;
 
 import static android.provider.ContactsContract.CommonDataKinds.Website.URL;
 
@@ -10,6 +10,7 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.util.Log;
@@ -26,6 +27,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -44,6 +46,9 @@ import java.util.UUID;
  */
 // ------------------------------------------------------------------
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQUEST_CODE_BLUETOOTH_PERMISSIONS = 1; // Puedes usar cualquier número entero
+
     private static final String ETIQUETA_LOG = ">>>>";
     private static final int CODIGO_PETICION_PERMISOS = 11223344;
     private BluetoothLeScanner elEscanner;
@@ -62,6 +67,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT},
+                        REQUEST_CODE_BLUETOOTH_PERMISSIONS);
+            }
+        }
 
         Log.d(ETIQUETA_LOG, " onCreate(): empieza ");
 
@@ -301,28 +314,19 @@ public class MainActivity extends AppCompatActivity {
 
     // --------------------------------------------------------------
     // --------------------------------------------------------------
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] grantResults) {
-        super.onRequestPermissionsResult( requestCode, permissions, grantResults);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode) {
-            case CODIGO_PETICION_PERMISOS:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    Log.d(ETIQUETA_LOG, " onRequestPermissionResult(): permisos concedidos  !!!!");
-                    // Permission is granted. Continue the action or workflow
-                    // in your app.
-                }  else {
-
-                    Log.d(ETIQUETA_LOG, " onRequestPermissionResult(): Socorro: permisos NO concedidos  !!!!");
-
-                }
-                return;
+        if (requestCode == REQUEST_CODE_BLUETOOTH_PERMISSIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso concedido, continua con la acción de Bluetooth
+                Log.d(ETIQUETA_LOG, "Permiso de Bluetooth concedido.");
+            } else {
+                // Permiso denegado, maneja la situación adecuadamente
+                Log.d(ETIQUETA_LOG, "Permiso de Bluetooth denegado.");
+            }
         }
-        // Other 'case' lines to check for other
-        // permissions this app might request.
-    } // ()
+    }
 
-} // class
+}//class
